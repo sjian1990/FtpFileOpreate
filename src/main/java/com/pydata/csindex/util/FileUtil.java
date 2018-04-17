@@ -9,10 +9,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+
+import com.google.common.base.CharMatcher;
+
 public class FileUtil {
+	private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
+	
 	/**
 	 * @describe 将压缩文件中的某一文件解压到指定文件夹
 	 * @param file
@@ -46,8 +56,9 @@ public class FileUtil {
 					write.write(len);
 				}
 			}catch (Exception e) {
-				System.out.println("解压时写入文件失败");
+				logger.error("解压失败，失败信息message:",e);
 			}
+			
 			write.flush();
 			write.close();
 			read.close();
@@ -56,5 +67,26 @@ public class FileUtil {
 		} 
 	}
 
+	public static List<String> readTXTByLine(String pathname) {
+		List<String> returnList = new ArrayList<>();
+		String line = "";
+		try {
+			File file = new File(pathname); // 要读取以上路径的input.txt文件
+			InputStreamReader reader = new InputStreamReader(new FileInputStream(file)); // 建立一个输入流对象reader
+			BufferedReader br = new BufferedReader(reader); // 建立一个对象，它把文件内容转成计算机能读懂的语言
+			line = br.readLine();
+			while (line != null) {
+				line = br.readLine(); // 一次读入一行数据
+				if( !StringUtils.isEmpty(line)) {
+					returnList.add(CharMatcher.WHITESPACE.replaceFrom(line, " "));
+				}				
+			}
+			br.close();
+			file.delete();
+		} catch (Exception e) {
+			logger.error("错误信息:", e);
+		}
+		return returnList;
+	}
 	
 }
